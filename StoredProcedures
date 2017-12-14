@@ -1,0 +1,55 @@
+# AdventureWorks2014
+
+1. Get a list of credit cards based on type and year of the card
+
+CREATE Proc [dbo].[spGetCCByTypeAndYear]
+@CardType nvarchar(100),
+@ExpYear int
+as
+BEGIN
+SELECT CreditCardID, CardType, CardNumber, ExpMonth, ExpYear from Sales.CreditCard
+WHERE CardType = @CardType AND ExpYear = @ExpYear
+END
+
+2. Find all tables that contain a specific column name. Show schema name, table name, and column name
+
+CREATE procedure [dbo].[spFindAllColumnName]
+@ColumnName nvarchar(50)
+as
+BEGIN
+select schema_name(schema_id) as 'schema_name',
+t.name as table_name,
+c.name as column_name
+FROM sys.tables t JOIN sys.columns c on (t.object_id=c.object_id)
+WHERE c.name = @ColumnName
+order by 'schema_name'
+END
+
+3. Query for all customer sales including columns CustomerID, StoreID, SalesOrderID,
+CardNumber, and name
+
+create proc [dbo].[spCusomterSalesCreditCardStoreIDSalesOrderID_andName]
+as
+begin
+SELECT sc.CustomerID, sc.StoreID, ssoh.SalesOrderID, CardNumber, pp.name FROM  sales.customer sc 
+left JOIN sales.salesorderheader ssoh ON (sc.CustomerID = ssoh.CustomerID)
+left JOIN sales.creditcard scc ON (ssoh.creditcardid = scc.CreditCardID)
+left join sales.SalesOrderDetail ssod on (ssoh.SalesOrderID = ssod.SalesOrderID)
+left join production.product pp on (ssod.ProductID = pp.ProductID)
+ORDEr BY sc.CustomerID
+end
+
+4. Using the query from Q3, calculate the average number of items sold per human customer
+
+create proc [dbo].[spCalcAvgNumItemsSoldPerPersonCustomer]
+@AvgNumItemsSoldPerCustomer int output
+as
+begin
+
+SELECT @AvgNumItemsSoldPerCustomer = count(pp.name)/count(DISTINCT sc.CustomerID) FROM  sales.customer sc 
+left JOIN sales.salesorderheader ssoh ON (sc.CustomerID = ssoh.CustomerID)
+left JOIN sales.creditcard scc ON (ssoh.creditcardid = scc.CreditCardID)
+left join sales.SalesOrderDetail ssod on (ssoh.SalesOrderID = ssod.SalesOrderID)
+left join production.product pp on (ssod.ProductID = pp.ProductID)
+WHERE pp.name is NOT NULL AND StoreID IS NULL
+end

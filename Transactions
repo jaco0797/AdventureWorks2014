@@ -1,0 +1,23 @@
+CREATE TABLE Person.MikeMyTable (
+ContactTypeID int NOT NULL,
+Name nvarchar(100) NOT NULL,
+ModifiedDate datetime NOT NULL
+
+--Edit MikeMyTable in Transaction
+
+Begin Transaction
+	INSERT INTO Person.MikeMyTable VALUES (150000, 'MikeJacobs', '2017-12-14 20:20:20.100')
+SAVE TRANSACTION InitialRow
+	INSERT INTO Person.MikeMyTable
+	SELECT ContactTypeId, Name, ModifiedDate FROM Person.ContactType
+Save Transaction InsertPersonContactType
+	Update Person.MikeMyTable
+	Set ContactTypeID = ContactTypeID+100
+	WHERE Name like '%Sales%'
+Save Transaction UpdateSalesID
+	DELETE FROM Person.MikeMyTable
+	WHERE Name LIKE '%Assistant%'
+Save Transaction DeleteAssistantInformation
+
+--Commit Transaction
+Rollback
